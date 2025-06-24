@@ -23,27 +23,22 @@ export const createLeaveRequest = async (req, res) => {
     // Calculate number of business days
     const numberOfDays = calculateBusinessDays(startDate, endDate);
 
-    // Check leave balance
-    const currentYear = new Date().getFullYear();
-    const leaveBalance = await LeaveBalance.findOne({
-      userId,
-      leaveType: leaveTypeDoc._id,
-      year: currentYear
-    });
-
-    if (!leaveBalance || leaveBalance.availableBalance < numberOfDays) {
-      return res.status(400).json({
-        message: 'Insufficient leave balance',
-        availableBalance: leaveBalance?.availableBalance || 0,
-        requestedDays: numberOfDays
+    // Only check leave balance for annual leave
+    if (leaveType === 'annual') {
+      const currentYear = new Date().getFullYear();
+      const leaveBalance = await LeaveBalance.findOne({
+        userId,
+        leaveType: leaveTypeDoc._id,
+        year: currentYear
       });
-    }
 
-    // Validate documentation requirements
-    if (leaveTypeDoc.requiresDocumentation && (!req.files || req.files.length === 0)) {
-      return res.status(400).json({
-        message: 'Documentation is required for this leave type'
-      });
+      if (!leaveBalance || leaveBalance.availableBalance < numberOfDays) {
+        return res.status(400).json({
+          message: 'Insufficient annual leave balance',
+          availableBalance: leaveBalance?.availableBalance || 0,
+          requestedDays: numberOfDays
+        });
+      }
     }
 
     // Create leave request
@@ -240,15 +235,10 @@ export const getPendingLeaveRequests = async (req, res) => {
       headers: { Authorization: req.headers.authorization }
     });
 
-    console.log("RESPONSE: ", response);
-
-    return res.status(200).json({message: "All users fetched successfully", response: response.data});
-
     // Get user IDs based on role
     let teamUserIds;
     if (role !== 'ADMIN') {
       teamUserIds = response.data.map(user => user.id);
-      return res.status(200).json({message: "All users fetched successfully", teamUserIds});
     } else {
       // For managers, only get users from their department
       teamUserIds = response?.data
@@ -261,7 +251,7 @@ export const getPendingLeaveRequests = async (req, res) => {
       userId: { $in: teamUserIds },
       status: 'pending'
     })
-    .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 });
 
     // Get user details for each request
     const requestsWithUserDetails = await Promise.all(
@@ -269,7 +259,7 @@ export const getPendingLeaveRequests = async (req, res) => {
         const userResponse = await axios.get(`${AUTH_SERVICE_URL}/api/users/${request.userId}`, {
           headers: { Authorization: req.headers.authorization }
         });
-        
+
         return {
           ...request.toObject(),
           user: {
@@ -283,7 +273,7 @@ export const getPendingLeaveRequests = async (req, res) => {
       })
     );
 
-    res.json({
+    return res.json({
       success: true,
       data: requestsWithUserDetails
     });

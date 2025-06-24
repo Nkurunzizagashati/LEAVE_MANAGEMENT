@@ -108,48 +108,42 @@ export const initializeUserLeaveBalances = async (userId) => {
         let accrualRate = 0;
         let maxCarryOver = 0;
         let requiresDocumentation = false;
-        
+
         switch (leaveType.name) {
           case 'annual':
             initialBalance = 0; // Start with 0, will accrue monthly
             accrualRate = 1.66; // 20/12 months
             maxCarryOver = 5; // Maximum 5 days carryover
-            requiresDocumentation = false;
             break;
 
           case 'sick':
             initialBalance = 15; // 15 days per year
             accrualRate = 0; // No monthly accrual
             maxCarryOver = 0; // No carryover
-            requiresDocumentation = true;
             break;
 
           case 'maternity':
             initialBalance = 98; // 14 weeks
             accrualRate = 0;
             maxCarryOver = 0;
-            requiresDocumentation = true;
             break;
 
           case 'paternity':
             initialBalance = 7;
             accrualRate = 0;
             maxCarryOver = 0;
-            requiresDocumentation = true;
             break;
 
           case 'compassionate':
             initialBalance = 7; // Using the highest bereavement leave duration
             accrualRate = 0;
             maxCarryOver = 0;
-            requiresDocumentation = true;
             break;
 
           case 'study':
             initialBalance = 0; // Granted as needed
             accrualRate = 0;
             maxCarryOver = 0;
-            requiresDocumentation = true;
             break;
         }
 
@@ -157,7 +151,7 @@ export const initializeUserLeaveBalances = async (userId) => {
         await LeaveType.findByIdAndUpdate(leaveType._id, {
           accrualRate,
           maxCarryOver,
-          requiresDocumentation,
+          requiresDocumentation: false,
           carryOverExpiryDate: new Date(currentYear, 0, 31) // January 31st
         });
 
@@ -260,7 +254,7 @@ export const getAllLeaveBalances = async (req, res) => {
     // Create response array with all leave types, including those without balances
     const response = leaveTypes.map(leaveType => {
       const existingBalance = balanceMap.get(leaveType._id.toString());
-      
+
       if (existingBalance) {
         return {
           leaveType: {
@@ -305,10 +299,10 @@ export const getAllLeaveBalances = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting all leave balances:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: 'Failed to fetch leave balances',
-      error: error.message 
+      error: error.message
     });
   }
 }; 

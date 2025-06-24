@@ -11,8 +11,8 @@ import {
 const router = express.Router();
 
 // Staff routes
-router.get('/my-balance', verifyToken, checkRole(['USER', 'ADMIN', 'MANAGER', 'PENDING']), getLeaveBalance);
-router.get('/all', verifyToken, checkRole(['USER', 'ADMIN', 'MANAGER', 'PENDING']), getAllLeaveBalances);
+router.get('/my-balance', verifyToken, checkRole(['STAFF', 'ADMIN', 'MANAGER', 'PENDING']), getLeaveBalance);
+router.get('/all', verifyToken, checkRole(['STAFF', 'ADMIN', 'MANAGER', 'PENDING']), getAllLeaveBalances);
 
 // Admin routes
 router.post('/update', verifyToken, checkRole(['ADMIN']), updateLeaveBalance);

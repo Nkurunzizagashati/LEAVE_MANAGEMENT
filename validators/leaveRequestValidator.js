@@ -1,7 +1,7 @@
 import { body } from 'express-validator';
 
 export const createLeaveRequestValidation = {
-  type: {
+  leaveType: {
     notEmpty: {
       errorMessage: 'Leave type is required'
     },
@@ -9,8 +9,8 @@ export const createLeaveRequestValidation = {
       errorMessage: 'Leave type must be a string'
     },
     isIn: {
-      options: [['annual', 'sick', 'maternity', 'paternity', 'unpaid']],
-      errorMessage: 'Invalid leave type. Must be one of: annual, sick, maternity, paternity, unpaid'
+      options: [['annual', 'sick', 'maternity', 'paternity', 'compassionate']],
+      errorMessage: 'Invalid leave type. Must be one of: annual, sick, maternity, paternity, compassionate'
     }
   },
   startDate: {
